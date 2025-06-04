@@ -3,7 +3,7 @@ from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize, sent_tokenize
 import re
 
-nltk.download('punkt')
+nltk.download('punkt_tab')
 nltk.download('stopwords')
 
 def summarize_text(text):
