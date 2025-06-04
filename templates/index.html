@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>PDF Summarizer By Tejas Choukale</title>
+    <style>
+      /* Import Inter font for modern typography */
+      @import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
+
+      /* Base reset and smooth fonts */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI",
+          Roboto, sans-serif;
+        background: linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 100%);
+        color: #e5e5e5;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        position: relative;
+        overflow-x: hidden;
+      }
+
+      /* Animated background elements */
+      body::before {
+        content: "";
+        position: fixed;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(
+            circle at 20% 50%,
+            rgba(120, 119, 198, 0.05) 0%,
+            transparent 50%
+          ),
+          radial-gradient(
+            circle at 80% 20%,
+            rgba(255, 119, 198, 0.05) 0%,
+            transparent 50%
+          ),
+          radial-gradient(
+            circle at 40% 80%,
+            rgba(120, 219, 226, 0.05) 0%,
+            transparent 50%
+          );
+        z-index: -1;
+        animation: float 20s ease-in-out infinite;
+      }
+
+      @keyframes float {
+        0%,
+        100% {
+          transform: translate(0px, 0px) rotate(0deg);
+        }
+        33% {
+          transform: translate(30px, -30px) rotate(120deg);
+        }
+        66% {
+          transform: translate(-20px, 20px) rotate(240deg);
+        }
+      }
+
+      /* Main container */
+      .container {
+        max-width: 600px;
+        width: 100%;
+        background: rgba(25, 25, 25, 0.95);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 24px;
+        padding: 48px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4),
+          0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+        position: relative;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      .container:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5),
+          0 0 0 1px rgba(255, 255, 255, 0.08) inset;
+      }
+
+      /* Header styling */
+      h1 {
+        font-size: clamp(1.8rem, 4vw, 2.5rem);
+        font-weight: 700;
+        text-align: center;
+        margin-bottom: 40px;
+        background: linear-gradient(135deg, #ffffff 0%, #a0a0a0 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        line-height: 1.2;
+      }
+
+      /* Form styling */
+      form {
+        display: flex;
+        flex-direction: column;
+        gap: 32px;
+      }
+
+      /* File upload section */
+      .file-upload-wrapper {
+        position: relative;
+      }
+
+      .file-upload-area {
+        position: relative;
+        border: 2px dashed rgba(255, 255, 255, 0.2);
+        border-radius: 16px;
+        padding: 40px 24px;
+        text-align: center;
+        background: rgba(255, 255, 255, 0.02);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        cursor: pointer;
+        overflow: hidden;
+      }
+
+      .file-upload-area:hover {
+        border-color: rgba(120, 119, 198, 0.6);
+        background: rgba(120, 119, 198, 0.05);
+        transform: translateY(-1px);
+      }
+
+      .file-upload-area.dragover {
+        border-color: #7877c6;
+        background: rgba(120, 119, 198, 0.1);
+        transform: scale(1.02);
+      }
+
+      input[type="file"] {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        cursor: pointer;
+        z-index: 2;
+      }
+
+      .upload-icon {
+        width: 48px;
+        height: 48px;
+        margin: 0 auto 16px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #7877c6 0%, #5a59a3 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+      }
+
+      .file-upload-area:hover .upload-icon {
+        transform: scale(1.1);
+      }
+
+      .upload-text {
+        font-size: 1.1rem;
+        font-weight: 500;
+        color: #e5e5e5;
+        margin-bottom: 8px;
+      }
+
+      .upload-subtext {
+        font-size: 0.9rem;
+        color: #a0a0a0;
+      }
+
+      /* Submit button */
+      .submit-btn {
+        background: linear-gradient(135deg, #7877c6 0%, #5a59a3 100%);
+        color: white;
+        border: none;
+        padding: 18px 32px;
+        border-radius: 12px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 8px 20px rgba(120, 119, 198, 0.3);
+      }
+
+      .submit-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 30px rgba(120, 119, 198, 0.4);
+      }
+
+      .submit-btn:active {
+        transform: translateY(0);
+      }
+
+      .submit-btn::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(255, 255, 255, 0.2),
+          transparent
+        );
+        transition: left 0.5s;
+      }
+
+      .submit-btn:hover::before {
+        left: 100%;
+      }
+
+      /* Summary box styling */
+      .summary-box {
+        margin-top: 40px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 16px;
+        padding: 32px;
+        position: relative;
+        overflow: hidden;
+        animation: slideInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      .summary-box::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, #7877c6, #5a59a3, #4a4992);
+        border-radius: 16px 16px 0 0;
+      }
+
+      .summary-box h2 {
+        font-size: 1.4rem;
+        font-weight: 600;
+        margin-bottom: 20px;
+        color: #ffffff;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .summary-box h2::before {
+        content: "✨";
+        font-size: 1.2rem;
+      }
+
+      .summary-box p {
+        font-size: 1rem;
+        line-height: 1.7;
+        color: #d0d0d0;
+        white-space: pre-wrap;
+      }
+
+      @keyframes slideInUp {
+        from {
+          opacity: 0;
+          transform: translateY(30px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      /* Responsive design */
+      @media (max-width: 768px) {
+        .container {
+          padding: 32px 24px;
+        }
+
+        h1 {
+          font-size: 1.8rem;
+          margin-bottom: 32px;
+        }
+
+        .file-upload-area {
+          padding: 32px 20px;
+        }
+
+        .submit-btn {
+          padding: 16px 28px;
+          font-size: 1rem;
+        }
+      }
+
+      /* Loading state */
+      .loading .submit-btn {
+        background: #666;
+        cursor: not-allowed;
+        pointer-events: none;
+      }
+
+      .loading .submit-btn::after {
+        content: "";
+        position: absolute;
+        width: 20px;
+        height: 20px;
+        margin: auto;
+        border: 2px solid transparent;
+        border-top-color: #ffffff;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Upload a PDF to Summarize</h1>
+      <form method="POST" enctype="multipart/form-data" id="uploadForm">
+        <div class="file-upload-wrapper">
+          <div class="file-upload-area" id="fileUploadArea">
+            <div class="upload-icon">
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z"
+                  stroke="white"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+                <polyline
+                  points="14,2 14,8 20,8"
+                  stroke="white"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+                <line
+                  x1="16"
+                  y1="13"
+                  x2="8"
+                  y2="13"
+                  stroke="white"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+                <line
+                  x1="16"
+                  y1="17"
+                  x2="8"
+                  y2="17"
+                  stroke="white"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+                <polyline
+                  points="10,9 9,9 8,9"
+                  stroke="white"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </div>
+            <div class="upload-text">Drop your PDF here or click to browse</div>
+            <div class="upload-subtext">Maximum file size: 10MB</div>
+            <input
+              type="file"
+              name="pdf"
+              accept="application/pdf"
+              required
+              id="pdfInput"
+            />
+          </div>
+        </div>
+        <button type="submit" class="submit-btn" id="submitBtn">
+          <span id="btnText">Analyze & Summarize</span>
+        </button>
+      </form>
+
+      {% if summary %}
+      <div class="summary-box">
+        <h2>Summary</h2>
+        <p>{{ summary }}</p>
+      </div>
+      {% endif %}
+    </div>
+
+    <script>
+      // Enhanced file upload interactions
+      const fileUploadArea = document.getElementById("fileUploadArea");
+      const pdfInput = document.getElementById("pdfInput");
+      const uploadForm = document.getElementById("uploadForm");
+      const submitBtn = document.getElementById("submitBtn");
+      const btnText = document.getElementById("btnText");
+
+      // Drag and drop functionality
+      fileUploadArea.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        fileUploadArea.classList.add("dragover");
+      });
+
+      fileUploadArea.addEventListener("dragleave", (e) => {
+        e.preventDefault();
+        fileUploadArea.classList.remove("dragover");
+      });
+
+      fileUploadArea.addEventListener("drop", (e) => {
+        e.preventDefault();
+        fileUploadArea.classList.remove("dragover");
+        const files = e.dataTransfer.files;
+        if (files.length > 0 && files[0].type === "application/pdf") {
+          pdfInput.files = files;
+          updateFileDisplay(files[0]);
+        }
+      });
+
+      // File input change handler
+      pdfInput.addEventListener("change", (e) => {
+        if (e.target.files.length > 0) {
+          updateFileDisplay(e.target.files[0]);
+        }
+      });
+
+      // Update file display
+      function updateFileDisplay(file) {
+        const uploadText = document.querySelector(".upload-text");
+        const uploadSubtext = document.querySelector(".upload-subtext");
+        uploadText.textContent = `Selected: ${file.name}`;
+        uploadSubtext.textContent = `Size: ${(file.size / 1024 / 1024).toFixed(
+          2
+        )} MB`;
+        fileUploadArea.style.borderColor = "#7877c6";
+        fileUploadArea.style.background = "rgba(120, 119, 198, 0.05)";
+      }
+
+      // Form submission with loading state
+      uploadForm.addEventListener("submit", (e) => {
+        document.body.classList.add("loading");
+        btnText.textContent = "Processing...";
+        submitBtn.disabled = true;
+      });
+
+      // Smooth scroll to summary if it exists
+      window.addEventListener("load", () => {
+        const summaryBox = document.querySelector(".summary-box");
+        if (summaryBox) {
+          setTimeout(() => {
+            summaryBox.scrollIntoView({ behavior: "smooth", block: "center" });
+          }, 300);
+        }
+      });
+    </script>
+  </body>
+</html>
